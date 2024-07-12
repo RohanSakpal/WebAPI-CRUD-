@@ -16,20 +16,34 @@ namespace SuperHero.Controllers
         }
 
         //Dynamic
-        [HttpGet]
-        public async Task<ActionResult<List<SuperHero>>> Get()
+        [HttpGet("{page}")]
+        public async Task<ActionResult<List<SuperHero>>> GetPage(int page)
         {
-            return Ok(await _context.SuperHeroes.ToListAsync());
+            var pageResults = 3f;
+            var pageCount = Math.Ceiling(_context.SuperHeroes.Count() / pageResults);
+
+            var hero = await _context.SuperHeroes
+                .Skip((page - 1) * (int)pageResults)
+                .Take((int)pageResults)
+                .ToListAsync();
+
+            var response = new HeroResponse
+            {
+                SuperHeroList = hero,
+                CurrentPages = page,
+                Pages = (int)pageCount
+            };
+            return Ok(response);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<List<SuperHero>>> Get(int id)
-        {
-            var hero = await _context.SuperHeroes.FindAsync(id);
-            if (hero == null)
-                return BadRequest("Hero Not Found");
-            return Ok(hero);
-        }
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<List<SuperHero>>> Get(int id)
+        //{
+        //    var hero = await _context.SuperHeroes.FindAsync(id);
+        //    if (hero == null)
+        //        return BadRequest("Hero Not Found");
+        //    return Ok(hero);
+        //}
 
         [HttpPost]
         public async Task<ActionResult<List<SuperHero>>> AddHero(SuperHero hero)
